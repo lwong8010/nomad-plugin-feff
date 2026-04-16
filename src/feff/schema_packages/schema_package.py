@@ -154,6 +154,8 @@ class FEFFNanoparticleEntry(EntryData):
         a_eln=ELNAnnotation(component=ELNComponentEnum.FileEditQuantity),
     )
 
+    _entry_dir: str = ''
+
     # --- per-site calculations ---
     xanes_calculations = SubSection(
         section_def=FEFFCalculation,
@@ -296,8 +298,6 @@ class FEFFNanoparticleEntry(EntryData):
 
                     structure = Structure(
                         dimension_types=[1, 1, 1],
-                        nperiodic_dimensions=3,
-                        n_sites=n,
                         lattice_vectors=atoms.get_cell()[:] * 1e-10,   # Å → m
                         cartesian_site_positions=atoms.get_positions() * 1e-10,
                         species_at_sites=atoms.get_chemical_symbols(),
@@ -366,6 +366,13 @@ class FEFFNanoparticleEntry(EntryData):
 
     def _resolve_structure_path(self, archive: 'EntryArchive') -> 'str | None':
         import os
+        # Prefer _entry_dir set directly by parser (works for local CLI)
+        if self._entry_dir:
+            path = os.path.join(self._entry_dir, self.structure_file)
+            if os.path.isfile(path):
+                return path
+
+        # Fallback: try archive context (works in full NOMAD upload)
         try:
             entry_dir = os.path.dirname(
                 archive.m_context.raw_path(archive.metadata.mainfile)

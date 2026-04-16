@@ -313,6 +313,8 @@ class FEFFParser(MatchingParser):
             config_data = yaml.safe_load(f)
 
         entry = FEFFNanoparticleEntry()
+        
+        entry._entry_dir = entry_dir
 
         # --- metadata ---
         meta = config_data.get('metadata', {})
