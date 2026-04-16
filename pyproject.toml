@@ -27,7 +27,9 @@ license = { file = "LICENSE" }
 dependencies = [
     "nomad-lab>=1.4.1",
     "pydantic",
-    "temporalio"
+    "numpy",
+    "pyyaml",
+    "ase",
 ]
 
 [project.urls]
