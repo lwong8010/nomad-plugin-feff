@@ -211,8 +211,10 @@ def parse_calc_directory(
     logger: 'BoundLogger',
 ) -> list:
     """
-    Walk a XANES/ or EXAFS/ directory and parse all atom_N subdirectories.
-    Returns a list of FEFFCalculation objects.
+    Walk a XANES/ or EXAFS/ directory and parse all subdirectories
+    that contain the expected output file for the given calc_type.
+    Does not assume any particular naming convention for subdirectories —
+    any subdir containing xmu.dat (XANES) or chi.dat (EXAFS) is valid.
     """
     calculations = []
 
@@ -220,27 +222,46 @@ def parse_calc_directory(
         logger.warning('Calculation directory not found', path=calc_dir)
         return calculations
 
-    atom_dirs = sorted(
-        d
-        for d in os.listdir(calc_dir)
-        if os.path.isdir(os.path.join(calc_dir, d)) and re.match(r'atom_\d+$', d)
+    # Determine which output file identifies a valid calculation subdir
+    expected_file = 'xmu.dat' if calc_type == 'XANES' else 'chi.dat'
+
+    # Find all subdirectories containing the expected output file,
+    # sorted for reproducibility
+    calc_subdirs = sorted(
+        d for d in os.listdir(calc_dir)
+        if os.path.isdir(os.path.join(calc_dir, d))
+        and os.path.isfile(os.path.join(calc_dir, d, expected_file))
     )
 
-    for dirname in atom_dirs:
-        atom_dir = os.path.join(calc_dir, dirname)
+    if not calc_subdirs:
+        logger.warning(
+            'No valid calculation subdirectories found',
+            path=calc_dir,
+            looking_for=expected_file,
+        )
+        return calculations
+
+    for i, dirname in enumerate(calc_subdirs):
+        subdir_path = os.path.join(calc_dir, dirname)
+
+        # Try to extract atom index from dirname if it follows atom_N convention,
+        # otherwise fall back to enumeration order
         atom_index = atom_index_from_dirname(dirname)
-
         if atom_index is None:
-            logger.warning('Could not parse atom index', dirname=dirname)
-            continue
+            atom_index = i
+            logger.info(
+                'Non-standard subdir name, using enumeration index',
+                dirname=dirname,
+                index=i,
+            )
 
-        # Prefer species from the full structure file
+        # Prefer species from full structure file, fall back to feff.inp
         species = None
         if structure_xyz and os.path.isfile(structure_xyz):
             species = get_species_from_xyz(structure_xyz, atom_index)
 
         calc = parse_feff_calculation(
-            atom_dir=atom_dir,
+            atom_dir=subdir_path,
             calc_type=calc_type,
             atom_index=atom_index,
             species=species,
@@ -250,12 +271,12 @@ def parse_calc_directory(
         logger.info(
             'Parsed calculation',
             calc_type=calc_type,
+            dirname=dirname,
             atom_index=atom_index,
             species=calc.species,
         )
 
     return calculations
-
 
 # ---------------------------------------------------------------------------
 # Main parser class
