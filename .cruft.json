@@ -1,0 +1,33 @@
+{
+  "template": "https://github.com/FAIRmat-NFDI/cookiecutter-nomad-plugin",
+  "commit": "ae953b0ba24e2df26daf5d641faeaaebb1d8aba2",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "Louis Wong",
+      "email": "lwong@iis.u-tokyo.ac.jp",
+      "github_username": "lwong8010",
+      "plugin_name": "feff",
+      "module_name": "feff",
+      "short_description": "A NOMAD parser plugin for FEFF output files",
+      "version": "0.1.0",
+      "license": "MIT",
+      "include_schema_package": true,
+      "include_normalizer": false,
+      "include_parser": true,
+      "include_app": true,
+      "include_example_uploads": true,
+      "include_action": true,
+      "include_north_tools": false,
+      "north_tool_name": "my_north_tool",
+      "include_citation_file": false,
+      "_copy_without_render": [
+        "*.html",
+        "*.png"
+      ],
+      "_template": "https://github.com/FAIRmat-NFDI/cookiecutter-nomad-plugin",
+      "_commit": "ae953b0ba24e2df26daf5d641faeaaebb1d8aba2"
+    }
+  },
+  "directory": null
+}

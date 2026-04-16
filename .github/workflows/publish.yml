@@ -1,0 +1,51 @@
+name: Upload Python Package
+
+on:
+  release:
+    types: [published]
+
+env:
+  PYTHON_VERSION: 3.12
+jobs:
+  
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install uv and set the Python version to ${{ env.PYTHON_VERSION }}
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: build package
+        run: |
+          uv build
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+  
+
+  # deploy:
+  #   name: Upload to PyPI
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/feff
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - name: Download dist artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: dist-artifacts
+  #         path: dist/
+  #     - name: Publish package distributions to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
